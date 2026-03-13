@@ -1,0 +1,126 @@
+#VRML_SIM R2023b utf8
+PROTO TwoWheeledRobot [
+  field SFVec3f    translation  0 0 0
+  field SFRotation rotation     0 1 0 0
+  field SFString   name         "two_wheeled_robot"
+  field SFString   controller   ""
+]
+{
+  Robot {
+    translation IS translation
+    rotation IS rotation
+    name IS name
+    controller IS controller
+    
+    children [
+      # Основной корпус робота
+      Shape {
+        appearance PBRAppearance {
+          baseColor 0.1 0.5 0.8
+          roughness 0.3
+          metalness 0
+        }
+        geometry Box {
+          size 0.15 0.1 0.2
+        }
+      }
+      
+      # Левое колесо
+      HingeJoint {
+        jointParameters HingeJointParameters {
+          axis 0 1 0
+          anchor -0.08 0 0.06
+        }
+        device [
+          RotationalMotor {
+            name "left_motor"
+            maxVelocity 10
+          }
+        ]
+        endPoint Solid {
+          translation -0.08 0 0.06
+          rotation 1 0 0 1.5708
+          children [
+            Shape {
+              appearance PBRAppearance {
+                baseColor 0.2 0.2 0.2
+                roughness 0.5
+              }
+              geometry Cylinder {
+                height 0.02
+                radius 0.04
+              }
+            }
+          ]
+        }
+      }
+      
+      # Правое колесо
+      HingeJoint {
+        jointParameters HingeJointParameters {
+          axis 0 1 0
+          anchor 0.08 0 0.06
+        }
+        device [
+          RotationalMotor {
+            name "right_motor"
+            maxVelocity 10
+          }
+        ]
+        endPoint Solid {
+          translation 0.08 0 0.06
+          rotation 1 0 0 1.5708
+          children [
+            Shape {
+              appearance PBRAppearance {
+                baseColor 0.2 0.2 0.2
+                roughness 0.5
+              }
+              geometry Cylinder {
+                height 0.02
+                radius 0.04
+              }
+            }
+          ]
+        }
+      }
+      
+      # Датчик расстояния спереди
+      DistanceSensor {
+        translation 0 0 0.12
+        rotation 0 1 0 -1.5708
+        name "front_sensor"
+        lookupTable [
+          0 0 0
+          0.5 500 0
+        ]
+      }
+      
+      # Светодиодный индикатор
+      LED {
+        translation 0 0.06 0
+        name "status_led"
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 1 0 0
+              emissiveColor 1 0 0
+            }
+            geometry Sphere {
+              radius 0.015
+            }
+          }
+        ]
+      }
+    ]
+    
+    boundingObject Box {
+      size 0.15 0.1 0.2
+    }
+    
+    physics Physics {
+      density -1
+      mass 0.5
+    }
+  }
+}

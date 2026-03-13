@@ -1,0 +1,440 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/RectangleArena.proto"
+
+WorldInfo {
+  info [
+    "SAHR - Best Implementation Based on Paper"
+  ]
+  contactProperties [
+    ContactProperties {
+      coulombFriction [
+        0.8
+      ]
+    }
+  ]
+}
+Viewpoint {
+  orientation -0.21552844843999944 0.17686253101753716 0.9603474022639501 3.32091583610265
+  position 2.5209759552779696 1.1234563713579884 0.8575827028401967
+  follow "rectangle arena"
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+  floorSize 4 3
+}
+Robot {
+  translation 0.093029 1.23125 0.259451
+  rotation 1 0 0 1.5708
+  children [
+    Pose {
+      translation 0 0.1 0
+      children [
+        Shape {
+          appearance Appearance {
+            material Material {
+              diffuseColor 1 0 0
+            }
+          }
+          geometry Box {
+            size 0.2 0.2 0.08
+          }
+        }
+        BallJoint {
+          jointParameters BallJointParameters {
+          }
+          jointParameters2 JointParameters {
+            axis 1 0 0
+          }
+          jointParameters3 JointParameters {
+          }
+          device [
+            RotationalMotor {
+              name "ball1_motor_x"
+            }
+          ]
+          device2 [
+            RotationalMotor {
+              name "ball1_motor_y"
+              minPosition -1.5707963267948966
+              maxPosition 1.5707963267948966
+            }
+          ]
+          device3 [
+            RotationalMotor {
+              name "ball1_motor_z"
+            }
+          ]
+          endPoint Solid {
+            translation -0.012415568707777559 0.015724381535920207 0.06258723843147344
+            rotation -0.1245683644324354 -0.9652722632326419 0.22963488501610818 0.07609793087820521
+            children [
+              Solid {
+                translation 1.46928e-07 6.74634e-14 0.54
+                rotation 0 0 1 1.5708
+                children [
+                  BallJoint {
+                    jointParameters BallJointParameters {
+                    }
+                    jointParameters2 JointParameters {
+                      axis 1 0 0
+                    }
+                    jointParameters3 JointParameters {
+                    }
+                    device [
+                      RotationalMotor {
+                        name "ball2_motor_x"
+                      }
+                    ]
+                    device2 [
+                      RotationalMotor {
+                        name "ball2_motor_y"
+                        minPosition -1.5707963267948966
+                        maxPosition 1.5707963267948966
+                      }
+                    ]
+                    device3 [
+                      RotationalMotor {
+                        name "ball2_motor_z"
+                      }
+                    ]
+                    endPoint Solid {
+                      translation -0.006434180000000053 0.004183000000000008 0.532786999999998
+                      children [
+                        HingeJoint {
+                          jointParameters HingeJointParameters {
+                            axis 1 0 1
+                          }
+                          device [
+                            RotationalMotor {
+                            }
+                          ]
+                          endPoint Solid {
+                            translation 0.0213547 -0.00916949 0.0599603
+                            rotation 3.232930957950129e-06 0.9999999998383987 -1.768475403515971e-05 1.5708357772511146
+                            children [
+                              HingeJoint {
+                                jointParameters HingeJointParameters {
+                                  anchor 0 0.6 0
+                                  dampingConstant 0.05
+                                }
+                                device [
+                                  RotationalMotor {
+                                  }
+                                ]
+                                endPoint Solid {
+                                  translation 0.0100286 -0.00996226 0.099757
+                                  rotation 6.486086048170856e-05 -0.9999999971649359 -3.825175746728922e-05 3.1415711913698483
+                                  children [
+                                    Solid {
+                                      translation 0 0 0.495
+                                      children [
+                                        Shape {
+                                          appearance PBRAppearance {
+                                          }
+                                          geometry Box {
+                                            size 0.6 0.6 0.02
+                                          }
+                                        }
+                                      ]
+                                      name "platform"
+                                      boundingObject Box {
+                                        size 0.6 0.6 0.01
+                                      }
+                                      physics Physics {
+                                        mass 100
+                                      }
+                                    }
+                                    Shape {
+                                      appearance PBRAppearance {
+                                      }
+                                      geometry Cylinder {
+                                        height 1
+                                        radius 0.02
+                                      }
+                                    }
+                                  ]
+                                  name "horizontal_arm"
+                                  boundingObject Cylinder {
+                                    height 1
+                                    radius 0.02
+                                  }
+                                  physics Physics {
+                                    mass 0.03
+                                  }
+                                }
+                              }
+                              Pose {
+                                children [
+                                  Shape {
+                                    geometry Sphere {
+                                      radius 0.05
+                                    }
+                                  }
+                                ]
+                              }
+                              Shape {
+                                appearance PBRAppearance {
+                                }
+                                geometry Cylinder {
+                                  height 0.02
+                                  radius 0.05
+                                }
+                              }
+                            ]
+                            name "vertical_suspension"
+                            boundingObject Cylinder {
+                              height 0.02
+                              radius 0.05
+                            }
+                            physics Physics {
+                            }
+                          }
+                        }
+                        Shape {
+                          appearance PBRAppearance {
+                          }
+                          geometry Sphere {
+                            radius 0.04
+                          }
+                        }
+                      ]
+                      boundingObject Sphere {
+                        radius 0.04
+                      }
+                      physics Physics {
+                      }
+                    }
+                  }
+                  Shape {
+                    appearance Appearance {
+                      material Material {
+                        diffuseColor 0.8 0.4 0.2
+                      }
+                    }
+                    geometry Cylinder {
+                      height 1
+                      radius 0.02
+                    }
+                  }
+                ]
+                boundingObject Cylinder {
+                  height 1
+                  radius 0.02
+                }
+                physics Physics {
+                }
+              }
+              Shape {
+                appearance PBRAppearance {
+                }
+                geometry Sphere {
+                  radius 0.027
+                }
+              }
+            ]
+            boundingObject Sphere {
+              radius 0.027
+            }
+            physics Physics {
+            }
+          }
+        }
+      ]
+    }
+    HingeJoint {
+      jointParameters HingeJointParameters {
+        axis 0 0 1
+        anchor 0 0.1 0
+        dampingConstant 0.23
+      }
+      device [
+        RotationalMotor {
+          name "hip_motor"
+          minPosition -1.047
+          maxPosition 1.047
+          maxTorque 5.5
+        }
+        PositionSensor {
+          name "hip_sensor"
+        }
+      ]
+      endPoint Solid {
+        translation -0.005776804513034599 0.08437332846280095 0.00017170377807673669
+        rotation -0.8863139230212741 0.4630821856169652 -0.0015872059896351327 0.002884877714566087
+        children [
+          Pose {
+            translation 0 -0.05 0
+            children [
+              Shape {
+                appearance Appearance {
+                  material Material {
+                    diffuseColor 0 0 1
+                  }
+                }
+                geometry Cylinder {
+                  height 0.1
+                  radius 0.01
+                }
+              }
+            ]
+          }
+          SliderJoint {
+            jointParameters JointParameters {
+              axis 0 -1 0
+              minStop -0.15
+              maxStop 0.15
+              springConstant 4800
+              dampingConstant 6
+            }
+            device [
+              PositionSensor {
+                name "leg_sensor"
+              }
+            ]
+            endPoint Solid {
+              translation 0.00270977 -0.05999750000000001 -0.0249655
+              rotation 0.9997911322746559 -0.018422502437339255 0.008848911170731208 -0.0005753071795862041
+              children [
+                Pose {
+                  translation 0 -0.1 0
+                  rotation 1 0 0 1.5708
+                  children [
+                    Shape {
+                      appearance Appearance {
+                        material Material {
+                          diffuseColor 1 1 0
+                        }
+                      }
+                      geometry Cylinder {
+                        height 0.15
+                        radius 0.008
+                      }
+                    }
+                  ]
+                }
+                Pose {
+                  translation 0 -0.175 0
+                  children [
+                    Shape {
+                      appearance Appearance {
+                        material Material {
+                          diffuseColor 0 1 0
+                        }
+                      }
+                      geometry Cylinder {
+                        height 0.15
+                        radius 0.007
+                      }
+                    }
+                  ]
+                }
+                Pose {
+                  translation 0 -0.25 0
+                  children [
+                    Shape {
+                      appearance Appearance {
+                        material Material {
+                          diffuseColor 0.5 0.5 0.5
+                        }
+                      }
+                      geometry Sphere {
+                        radius 0.02
+                      }
+                    }
+                  ]
+                }
+                TouchSensor {
+                  name "foot_sensor"
+                  type "force"
+                }
+              ]
+              name "leg_foot_assembly"
+              boundingObject Group {
+                children [
+                  Pose {
+                    translation 0 -0.1 0
+                    rotation 1 0 0 1.5708
+                    children [
+                      Cylinder {
+                        height 0.15
+                        radius 0.008
+                      }
+                    ]
+                  }
+                  Pose {
+                    translation 0 -0.175 0
+                    children [
+                      Cylinder {
+                        height 0.15
+                        radius 0.007
+                      }
+                    ]
+                  }
+                  Pose {
+                    translation 0 -0.25 0
+                    children [
+                      Sphere {
+                        radius 0.02
+                      }
+                    ]
+                  }
+                ]
+              }
+              physics Physics {
+                density -1
+                mass 0.5
+              }
+            }
+          }
+        ]
+        name "thigh_assembly"
+        boundingObject Pose {
+          translation 0 -0.05 0
+          children [
+            Cylinder {
+              height 0.1
+              radius 0.01
+            }
+          ]
+        }
+        physics Physics {
+          density -1
+          mass 0.1
+        }
+      }
+    }
+    GPS {
+      name "body_gps"
+    }
+    InertialUnit {
+      name "body_imu"
+    }
+  ]
+  name "SAHR_Best"
+  boundingObject Group {
+    children [
+      Pose {
+        translation 0 0.1 0
+        children [
+          Box {
+            size 0.2 0.2 0.08
+          }
+        ]
+      }
+    ]
+  }
+  physics Physics {
+    density -1
+    mass 5
+    centerOfMass [
+      0.05 0.3 0
+    ]
+  }
+  controller "sahr_basic"
+}
