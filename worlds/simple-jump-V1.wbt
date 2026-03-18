@@ -46,8 +46,8 @@ Solid {
                 maxStop 3.14
               }
               endPoint DEF x Solid {
-                translation 0.02379394056089897 0.007354555309965542 -9.591667685426129e-05
-                rotation -0.14779268102087836 0.9778951375830238 0.14791356708611883 1.5923530587840675
+                translation 0.02379495386220642 0.00735494199240232 -9.631652412589334e-05
+                rotation -0.1477926112861902 0.9778951382444514 0.14791363239091324 1.5923530890393824
                 children [
                   HingeJoint {
                     jointParameters HingeJointParameters {
@@ -57,8 +57,8 @@ Solid {
                       maxStop 3.14
                     }
                     endPoint Solid {
-                      translation -0.19606652514361608 7.591549631122518e-08 0.09979191745962389
-                      rotation -8.03019402396949e-08 -0.9999999999999915 1.0305012151989723e-07 1.1000000000000143
+                      translation -0.19606652514361603 7.591549631122516e-08 0.09979191745962386
+                      rotation -7.836666933782711e-08 -0.999999999999992 1.0056662110862309e-07 1.100000000000013
                       children [
                         HingeJoint {
                           jointParameters HingeJointParameters {
@@ -66,12 +66,19 @@ Solid {
                           }
                           device [
                             RotationalMotor {
-                              acceleration 0
+                              name "hip_motor"
+                              acceleration 1000
+                              maxVelocity 30
+                              minPosition -1.57
+                              maxPosition 1.57
+                            }
+                            PositionSensor {
+                              name "hip_sensor"
                             }
                           ]
                           endPoint Solid {
-                            translation 0 0 0.19999999999999424
-                            rotation -2.454246852473444e-16 1 -4.221304586254323e-16 1.5699999999999898
+                            translation -2.9700664968873646e-06 7.825013078848857e-08 0.20000406072197416
+                            rotation -1.3788200343981934e-05 0.9999999998099618 1.3782665742376115e-05 1.570000025062598
                             children [
                               SliderJoint {
                                 jointParameters JointParameters {
@@ -79,10 +86,18 @@ Solid {
                                   maxStop 0.1
                                   springConstant 50000
                                 }
+                                device [
+                                  PositionSensor {
+                                    name "leg_sensor"
+                                  }
+                                ]
                                 endPoint Solid {
-                                  translation 0.00030643594169055266 9.308666623027151e-06 0.20000000073057764
-                                  rotation -0.29779662877412566 0.9545704609851592 0.010602023643917305 3.798177739116143e-06
+                                  translation 0.00030704767281952705 1.0035567441203652e-05 0.2003026618351411
+                                  rotation -0.6511612934458448 0.7589344860847103 0.00272318733675352 2.347411812071907e-06
                                   children [
+                                    TouchSensor {
+                                      name "foot_sensor"
+                                    }
                                     Pose {
                                       translation 0 0 -0.05
                                       children [
@@ -212,6 +227,7 @@ Solid {
             density -1
             mass 0.001
           }
+          controller "sahr_jump_controller"
         }
       ]
     }

@@ -1,0 +1,331 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/floors/protos/Floor.proto"
+
+WorldInfo {
+  info [
+    "SAHR - Best Implementation Based on Paper"
+  ]
+  basicTimeStep 1
+  contactProperties [
+    ContactProperties {
+    }
+    ContactProperties {
+      material1 "mat1"
+      material2 "mat2"
+      coulombFriction [
+        0.8
+      ]
+      frictionRotation 1 1
+    }
+  ]
+}
+Viewpoint {
+  orientation 0.16994332663407674 0.14789309772468343 -0.9742930243915024 1.7680577588425395
+  position 0.48522695544971167 0.5671515797501963 0.285651031225569
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+Solid {
+  translation -0.00012690252755006957 -1.5954590862881022e-05 0.15377548062347823
+  rotation -0.274524853612158 0.8019934196293601 0.5305116960260426 9.094933029387713e-05
+  children [
+    Pose {
+      translation 0 0 0.1
+      children [
+        Robot {
+          children [
+            HingeJoint {
+              jointParameters HingeJointParameters {
+                position 0.1254821523759611
+                axis 0 0 1
+                minStop -3.14
+                maxStop 3.14
+              }
+              endPoint DEF x Solid {
+                translation 0.024710580406926367 0.0031116260972247284 -9.631652412589067e-05
+                rotation -0.06257506007234641 0.9960733147550704 0.06262837607497551 1.5739360185043376
+                children [
+                  HingeJoint {
+                    jointParameters HingeJointParameters {
+                      position 0.10752346228390253
+                      axis 0 1 0
+                      minStop -3.14
+                      maxStop 3.14
+                    }
+                    endPoint Solid {
+                      translation 0.023610005864124876 7.591549631122383e-08 0.21873060301488423
+                      rotation 0 0.9999999999999999 0 0.10752346228390192
+                      children [
+                        HingeJoint {
+                          jointParameters HingeJointParameters {
+                            position 0.015733499879297362
+                            axis 0.1 0 0
+                          }
+                          device [
+                            RotationalMotor {
+                              name "hip_motor"
+                              acceleration 1000
+                              maxVelocity 30
+                              minPosition -1.57
+                              maxPosition 1.57
+                            }
+                            PositionSensor {
+                              name "hip_sensor"
+                            }
+                          ]
+                          endPoint Solid {
+                            translation -0.0200027 -0.0031469000000000007 0.199963
+                            rotation 0.007858909702502529 0.9999380679822569 0.007880211811828032 1.5700616779038892
+                            children [
+                              HingeJoint {
+                                jointParameters HingeJointParameters {
+                                  position 19.153560990547312
+                                }
+                                device [
+                                  PositionSensor {
+                                    name "centrifugal_sensor"
+                                  }
+                                  RotationalMotor {
+                                    name "centrifugal_motor"
+                                    acceleration 1000
+                                    maxVelocity 50
+                                    minPosition -6.28
+                                    maxPosition 6.28
+                                    maxTorque 100
+                                  }
+                                ]
+                                endPoint Solid {
+                                  translation -0.020000007964417074 -0.023977707852210636 0.07650775090330503
+                                  rotation -0.9999999999999953 1.9717986298711467e-08 -9.641522205374799e-08 5.979180238171027
+                                  children [
+                                    Solid {
+                                      translation 0 0 0.08
+                                      children [
+                                        Shape {
+                                          appearance Appearance {
+                                            material Material {
+                                            }
+                                          }
+                                          geometry Sphere {
+                                            radius 0.01
+                                          }
+                                        }
+                                      ]
+                                      boundingObject Sphere {
+                                        radius 0.01
+                                      }
+                                      physics Physics {
+                                        mass 2
+                                      }
+                                    }
+                                    Shape {
+                                      appearance Appearance {
+                                        material Material {
+                                          diffuseColor 0.607843 0.607843 0.607843
+                                        }
+                                      }
+                                      geometry Cylinder {
+                                        height 0.15
+                                        radius 0.005
+                                      }
+                                    }
+                                  ]
+                                  name "solid(1)"
+                                  boundingObject Cylinder {
+                                    height 0.15
+                                    radius 0.005
+                                  }
+                                  physics Physics {
+                                    mass 0.1
+                                  }
+                                }
+                              }
+                              SliderJoint {
+                                jointParameters JointParameters {
+                                  position -0.0024006708864919733
+                                  minStop -0.1
+                                  maxStop 0.1
+                                  springConstant 50000
+                                }
+                                device [
+                                  PositionSensor {
+                                    name "leg_sensor"
+                                  }
+                                ]
+                                endPoint Solid {
+                                  translation 0.00030704767281952705 1.0035567441203652e-05 0.1979019909486491
+                                  rotation -0.6511612934458448 0.7589344860847103 0.00272318733675352 2.347411812071907e-06
+                                  children [
+                                    TouchSensor {
+                                      name "foot_sensor"
+                                    }
+                                    Pose {
+                                      translation 0 0 -0.05
+                                      children [
+                                        Shape {
+                                          appearance Appearance {
+                                            material Material {
+                                              diffuseColor 0.1 0.1 0.1
+                                            }
+                                          }
+                                          geometry Cylinder {
+                                            height 0.1
+                                            radius 0.005
+                                          }
+                                        }
+                                      ]
+                                    }
+                                    Shape {
+                                      appearance Appearance {
+                                        material Material {
+                                          diffuseColor 0.2 0.4 0.8
+                                        }
+                                      }
+                                      geometry Sphere {
+                                        radius 0.01
+                                      }
+                                    }
+                                  ]
+                                  contactMaterial "mat1"
+                                  boundingObject Sphere {
+                                    radius 0.01
+                                  }
+                                  physics Physics {
+                                    density -1
+                                    mass 0.1
+                                  }
+                                }
+                              }
+                              Pose {
+                                translation 0 0 0.05
+                                children [
+                                  Shape {
+                                    appearance Appearance {
+                                      material Material {
+                                        diffuseColor 0.6 0.6 0.6
+                                      }
+                                    }
+                                    geometry Box {
+                                      size 0.02 0.02 0.1
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                            boundingObject Box {
+                              size 0.02 0.02 0.2
+                            }
+                            physics Physics {
+                              density -1
+                              mass 10
+                              centerOfMass [
+                                0 0 0
+                              ]
+                            }
+                          }
+                        }
+                        Shape {
+                          appearance Appearance {
+                            material Material {
+                              diffuseColor 0.3 0.3 0.3
+                            }
+                          }
+                          geometry Cylinder {
+                            height 0.4
+                            radius 0.01
+                          }
+                        }
+                      ]
+                      contactMaterial "mat1"
+                      boundingObject Cylinder {
+                        height 0.4
+                        radius 0.01
+                      }
+                      physics Physics {
+                        density -1
+                        mass 0.001
+                        centerOfMass [
+                          0 0 0
+                        ]
+                        inertiaMatrix [
+                          1 1 1
+                          0 0 0
+                        ]
+                      }
+                    }
+                  }
+                  Pose {
+                    translation 0 0 -0.0125
+                    children [
+                      Shape {
+                        appearance Appearance {
+                          material Material {
+                            diffuseColor 0.4 0.4 0.4
+                          }
+                        }
+                        geometry Cylinder {
+                          height 0.02
+                          radius 0.01
+                        }
+                      }
+                    ]
+                  }
+                ]
+                boundingObject Box {
+                  size 0.1 0.1 0.1
+                }
+                physics Physics {
+                  density -1
+                  mass 0.001
+                }
+              }
+            }
+          ]
+          boundingObject Box {
+            size 0.1 0.1 0.1
+          }
+          physics Physics {
+            density -1
+            mass 0.001
+          }
+          controller "sahr_jump_controller"
+        }
+      ]
+    }
+    Pose {
+      translation 0 0 0.1
+    }
+    Shape {
+      appearance Appearance {
+        material Material {
+          diffuseColor 0.5 0.5 0.5
+        }
+      }
+      geometry Cylinder {
+        height 0.2
+        radius 0.01
+      }
+    }
+  ]
+  boundingObject Pose {
+    translation 0 0 -0.15
+    children [
+      Box {
+        size 0.5 0.5 0.01
+      }
+    ]
+  }
+  physics Physics {
+    density -1
+    mass 100
+  }
+}
+Floor {
+  contactMaterial "mat2"
+  size 2 2
+}
