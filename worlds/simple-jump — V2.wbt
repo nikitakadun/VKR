@@ -23,8 +23,8 @@ WorldInfo {
   ]
 }
 Viewpoint {
-  orientation 0.16994332663407674 0.14789309772468343 -0.9742930243915024 1.7680577588425395
-  position 0.48522695544971167 0.5671515797501963 0.285651031225569
+  orientation 0.2240263124346929 0.14271093718375322 -0.964077693832322 2.0652600312074436
+  position 0.6538266212390051 0.5031463915223657 0.2721898056879804
 }
 TexturedBackground {
 }
@@ -47,8 +47,8 @@ Solid {
                 maxStop 3.14
               }
               endPoint DEF x Solid {
-                translation 0.024710580406926367 0.0031116260972247284 -9.631652412589067e-05
-                rotation -0.06257506007234641 0.9960733147550704 0.06262837607497551 1.5739360185043376
+                translation 0.024710580406926082 0.0031116260972246933 -9.631652412588888e-05
+                rotation -0.06257506007234638 0.9960733147550704 0.06262837607497546 1.5739360185043376
                 children [
                   HingeJoint {
                     jointParameters HingeJointParameters {
@@ -58,13 +58,14 @@ Solid {
                       maxStop 3.14
                     }
                     endPoint Solid {
-                      translation 0.023610005864124876 7.591549631122383e-08 0.21873060301488423
+                      translation 0.0236100058641249 7.591549631122386e-08 0.218730603014885
                       rotation 0 0.9999999999999999 0 0.10752346228390192
                       children [
                         HingeJoint {
                           jointParameters HingeJointParameters {
                             position 0.015733499879297362
-                            axis 0.1 0 0
+                            minStop -0.01
+                            maxStop 0.01
                           }
                           device [
                             RotationalMotor {
@@ -79,9 +80,24 @@ Solid {
                             }
                           ]
                           endPoint Solid {
-                            translation -0.0200027 -0.0031469000000000007 0.199963
-                            rotation 0.007858909702502529 0.9999380679822569 0.007880211811828032 1.5700616779038892
+                            translation -0.040009399999999994 -0.0033046129879368163 0.20994648141130756
+                            rotation 0.007858807886766135 0.9999380680779856 0.007880301203938015 1.5700621449051586
                             children [
+                              DistanceSensor {
+                                translation 0 0 0.208
+                                name "height_sensor"
+                                lookupTable [
+                                  0 0 0
+                                  1 1 0
+                                ]
+                                type "laser"
+                              }
+                              InertialUnit {
+                                name "inertial_unit"
+                              }
+                              GPS {
+                                name "body_gps"
+                              }
                               HingeJoint {
                                 jointParameters HingeJointParameters {
                                   position 19.153560990547312
@@ -95,13 +111,13 @@ Solid {
                                     acceleration 1000
                                     maxVelocity 50
                                     minPosition -6.28
-                                    maxPosition 6.28
+                                    maxPosition 19.153560990547312
                                     maxTorque 100
                                   }
                                 ]
                                 endPoint Solid {
-                                  translation -0.020000007964417074 -0.023977707852210636 0.07650775090330503
-                                  rotation -0.9999999999999953 1.9717986298711467e-08 -9.641522205374799e-08 5.979180238171027
+                                  translation -0.019999999999999577 -0.003977699999999997 0.0765077999999986
+                                  rotation 1 0 0 0
                                   children [
                                     Solid {
                                       translation 0 0 0.08
