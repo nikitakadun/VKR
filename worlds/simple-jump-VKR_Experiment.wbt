@@ -23,66 +23,125 @@ WorldInfo {
   ]
 }
 Viewpoint {
-  orientation 0.15056454942798206 -0.17353003975052733 -0.9732510682037442 4.865574074780234
-  position 0.14794085620727782 -1.3411170676117024 0.6444200381091371
+  orientation -0.30406819395187107 0.014298882196902377 0.9525429519946942 3.0333656901530412
+  position 1.2336667574694233 -0.0407349625780139 0.693191288101576
 }
 TexturedBackground {
 }
 TexturedBackgroundLight {
 }
 Solid {
-  translation -0.00012690252755006957 -1.5954590862881022e-05 0.15377548062347823
-  rotation -0.274524853612158 0.8019934196293601 0.5305116960260426 9.094933029387713e-05
+  translation -0.002548526877844466 -0.00040269308659803194 0.15377934653861047
+  rotation 0 0 1 0.0013296062847445635
   children [
     Pose {
       translation 0 0 0.1
       children [
         Robot {
+          translation 0 0 -0.05
           children [
             HingeJoint {
               jointParameters HingeJointParameters {
-                position 0.1254821523759611
+                position 0.327
                 axis 0 0 1
                 minStop -3.14
                 maxStop 3.14
               }
+              device [
+                PositionSensor {
+                  name "arm_angle_sensor"
+                }
+              ]
               endPoint DEF x Solid {
-                translation 0.024710580406925715 0.003111626097224647 -9.631652412588685e-05
-                rotation -0.06257506007234638 0.9960733147550704 0.06262837607497546 1.5739360185043376
+                translation 0.03410969823619046 1.096934897360305e-05 -0.0038018000000003722
+                rotation -0.00016107592521574917 0.9999999740558929 0.00016106756281038362 1.570848270008141
                 children [
+                  Solid {
+                    translation -4.89665e-14 0 -0.025
+                    rotation 0 1 0 1.5708
+                    children [
+                      Shape {
+                        appearance PBRAppearance {
+                        }
+                        geometry Cylinder {
+                          height 0.01
+                          radius 0.024
+                        }
+                      }
+                    ]
+                    name "solid(1)"
+                    boundingObject Cylinder {
+                      height 0.01
+                      radius 0.024
+                    }
+                  }
                   HingeJoint {
                     jointParameters HingeJointParameters {
-                      position 0.10752346228390253
+                      position 2.545451275482914
                       axis 0 1 0
                       minStop -3.14
                       maxStop 3.14
                     }
                     endPoint Solid {
-                      translation 0.0262175 7.59155e-08 0.198006
-                      rotation 0 0.9999999999999999 0 0.10752200045036411
+                      translation -0.08736281129716048 7.61007e-08 0.17499187852759568
+                      rotation 0 -1 0 0.4523327560995197
                       children [
+                        Solid {
+                          translation 0 0 0.2
+                          children [
+                            Shape {
+                              appearance PBRAppearance {
+                              }
+                              geometry Cylinder {
+                                height 0.02
+                                radius 0.013
+                              }
+                            }
+                          ]
+                          name "solid(1)"
+                          boundingObject Cylinder {
+                            height 0.02
+                            radius 0.013
+                          }
+                        }
                         HingeJoint {
                           jointParameters HingeJointParameters {
-                            position 0.015733499879297362
-                            minStop -0.01
-                            maxStop 0.01
+                            axis 0 0 1
                           }
                           device [
                             RotationalMotor {
                               name "hip_motor"
-                              acceleration 1000
-                              maxVelocity 30
-                              minPosition -1.57
-                              maxPosition 1.57
+                              acceleration 0
+                              maxVelocity 0
+                              maxTorque 0
                             }
                             PositionSensor {
                               name "hip_sensor"
                             }
                           ]
                           endPoint Solid {
-                            translation -0.040009399999999994 -0.003304612987936849 0.20994648141130964
-                            rotation 0.007858807886766135 0.9999380680779856 0.007880301203938015 1.5700621449051586
+                            translation 0.009972720527383986 -1.3911671812870521e-05 0.2199976295492901
+                            rotation 0.011524482315039738 0.9999333396793559 0.0007088759129188692 1.5700604538172254
                             children [
+                              Solid {
+                                translation -0.015 0 -0.03
+                                rotation 0 1 0 1.5708
+                                children [
+                                  Shape {
+                                    appearance PBRAppearance {
+                                    }
+                                    geometry Cylinder {
+                                      height 0.01
+                                      radius 0.014
+                                    }
+                                  }
+                                ]
+                                name "solid(2)"
+                                boundingObject Cylinder {
+                                  height 0.01
+                                  radius 0.014
+                                }
+                              }
                               DistanceSensor {
                                 translation 0 0 0.208
                                 name "height_sensor"
@@ -100,7 +159,6 @@ Solid {
                               }
                               HingeJoint {
                                 jointParameters HingeJointParameters {
-                                  position 19.153560990547312
                                 }
                                 device [
                                   PositionSensor {
@@ -108,16 +166,16 @@ Solid {
                                   }
                                   RotationalMotor {
                                     name "centrifugal_motor"
-                                    acceleration 1000
-                                    maxVelocity 60
+                                    acceleration 0
+                                    maxVelocity 0
                                     minPosition -6.28
-                                    maxPosition 19.153560990547312
+                                    maxPosition 19.313912945435295
                                     maxTorque 100
                                   }
                                 ]
                                 endPoint Solid {
-                                  translation -0.019999999999999057 -0.003977699999999997 0.07650779999999696
-                                  rotation 1 0 0 0
+                                  translation -0.025000087395180448 0.000904762142140867 -0.010467849891921793
+                                  rotation 0.9999999999966965 2.5681443212357214e-06 -1.0665638001303354e-07 0.010000029603955447
                                   children [
                                     Solid {
                                       translation 0 0 0.08
@@ -136,7 +194,6 @@ Solid {
                                         radius 0.01
                                       }
                                       physics Physics {
-                                        mass 2
                                       }
                                     }
                                     Shape {
@@ -163,7 +220,7 @@ Solid {
                               }
                               SliderJoint {
                                 jointParameters JointParameters {
-                                  position -0.0024006708864919733
+                                  position -0.002646144835211221
                                   minStop -0.1
                                   maxStop 0.1
                                   springConstant 50000
@@ -174,22 +231,15 @@ Solid {
                                   }
                                 ]
                                 endPoint Solid {
-                                  translation 0.00030704767281952705 1.0035567441203652e-05 0.1979019909486491
-                                  rotation -0.6511612934458448 0.7589344860847103 0.00272318733675352 2.347411812071907e-06
+                                  translation 0 0 0.137354
                                   children [
                                     TouchSensor {
-                                      translation 0 0 0.0002
+                                      translation 1.6352324477275637e-06 -1.165395607460873e-06 0.0003849451531805076
+                                      rotation -0.01633208755444823 0.9998665384044335 0.0004102380400166768 3.5206124051200952e-09
                                       name "foot_sensor"
                                       boundingObject Sphere {
                                         radius 0.01
                                       }
-                                      physics Physics {
-                                      }
-                                      type "force"
-                                      lookupTable [
-                                        0 1 0
-                                        5000 50000 0
-                                      ]
                                     }
                                     Pose {
                                       translation 0 0 -0.05
@@ -229,7 +279,6 @@ Solid {
                                 }
                               }
                               Pose {
-                                translation 0 0 0.05
                                 children [
                                   Shape {
                                     appearance Appearance {
@@ -245,11 +294,11 @@ Solid {
                               }
                             ]
                             boundingObject Box {
-                              size 0.02 0.02 0.2
+                              size 0.02 0.02 0.1
                             }
                             physics Physics {
                               density -1
-                              mass 10
+                              mass 12
                               centerOfMass [
                                 0 0 0
                               ]
@@ -290,10 +339,7 @@ Solid {
                     translation 0 0 -0.0125
                     children [
                       Shape {
-                        appearance Appearance {
-                          material Material {
-                            diffuseColor 0.4 0.4 0.4
-                          }
+                        appearance PBRAppearance {
                         }
                         geometry Cylinder {
                           height 0.02
@@ -320,7 +366,7 @@ Solid {
             density -1
             mass 0.001
           }
-          controller "<none>"
+          controller "experiment_controller"
         }
       ]
     }
@@ -334,7 +380,7 @@ Solid {
         }
       }
       geometry Cylinder {
-        height 0.2
+        height 0.3
         radius 0.01
       }
     }

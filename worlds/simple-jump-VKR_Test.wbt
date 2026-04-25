@@ -23,46 +23,87 @@ WorldInfo {
   ]
 }
 Viewpoint {
-  orientation 0.38027875533931 0.0007536173669493107 -0.9248716128730785 3.1528722729186436
-  position 1.8809792576150897 0.016989150025310373 1.8944421246813345
+  orientation -0.13122536661122663 0.09192194949652643 0.9870816877839985 1.8876845245992773
+  position 0.47607949496531565 -0.8418506939554534 0.5921459467791015
 }
 TexturedBackground {
 }
 TexturedBackgroundLight {
 }
 Solid {
-  translation 0 0 0.155
+  translation -0.000126903 -1.59546e-05 0.153786
+  rotation -0.274524853612158 0.8019934196293601 0.5305116960260425 9.094932982293719e-05
   children [
     Pose {
       translation 0 0 0.1
       children [
         Robot {
+          translation 0 0 -0.05
           children [
             HingeJoint {
               jointParameters HingeJointParameters {
-                position 0.3
+                position 0.1254821523759611
                 axis 0 0 1
                 minStop -3.14
                 maxStop 3.14
               }
               endPoint DEF x Solid {
-                translation 0.02379495386220642 0.00735494199240232 -9.631652412589334e-05
-                rotation -0.1477926112861902 0.9778951382444514 0.14791363239091324 1.5923530890393824
+                translation 0.024997072744119955 0.003135059087489842 -0.0037999999999999367
+                rotation -0.06257503292148998 0.9960733147564261 0.06262840318114675 1.5739360188909235
                 children [
+                  Solid {
+                    translation -4.89665e-14 0 -0.025
+                    rotation 0 1 0 1.5708
+                    children [
+                      Shape {
+                        appearance PBRAppearance {
+                        }
+                        geometry Cylinder {
+                          height 0.01
+                          radius 0.024
+                        }
+                      }
+                    ]
+                    name "solid(1)"
+                    boundingObject Cylinder {
+                      height 0.01
+                      radius 0.024
+                    }
+                  }
                   HingeJoint {
                     jointParameters HingeJointParameters {
-                      position -1.1
+                      position 0.10752346228390253
                       axis 0 1 0
                       minStop -3.14
                       maxStop 3.14
                     }
                     endPoint Solid {
-                      translation -0.19606652514361603 7.591549631122516e-08 0.09979191745962386
-                      rotation -7.836666933782711e-08 -0.999999999999992 1.0056662110862309e-07 1.100000000000013
+                      translation -0.17496900000000132 7.59155e-08 0.09754920000000096
+                      rotation 0 -1 0 1.047195307179586
                       children [
+                        Solid {
+                          translation 0 0 0.2
+                          children [
+                            Shape {
+                              appearance PBRAppearance {
+                              }
+                              geometry Cylinder {
+                                height 0.02
+                                radius 0.013
+                              }
+                            }
+                          ]
+                          name "solid(1)"
+                          boundingObject Cylinder {
+                            height 0.02
+                            radius 0.013
+                          }
+                        }
                         HingeJoint {
                           jointParameters HingeJointParameters {
-                            axis 0 0 1
+                            position 0.015733499879297362
+                            minStop -0.001
+                            maxStop 0.001
                           }
                           device [
                             RotationalMotor {
@@ -77,11 +118,109 @@ Solid {
                             }
                           ]
                           endPoint Solid {
-                            translation -2.9700664968873646e-06 7.825013078848857e-08 0.20000406072197416
-                            rotation -1.3788200343981934e-05 0.9999999998099618 1.3782665742376115e-05 1.570000025062598
+                            translation 0.009974380000000001 -0.0034763945571608746 0.21998402364259836
+                            rotation -4.560980000039051e-08 0.9999999999999405 -3.4195300000079345e-07 1.5700553071795866
                             children [
+                              Solid {
+                                translation -0.015 0 -0.03
+                                rotation 0 1 0 1.5708
+                                children [
+                                  Shape {
+                                    appearance PBRAppearance {
+                                    }
+                                    geometry Cylinder {
+                                      height 0.01
+                                      radius 0.014
+                                    }
+                                  }
+                                ]
+                                name "solid(2)"
+                                boundingObject Cylinder {
+                                  height 0.01
+                                  radius 0.014
+                                }
+                              }
+                              DistanceSensor {
+                                translation 0 0 0.208
+                                name "height_sensor"
+                                lookupTable [
+                                  0 0 0
+                                  1 1 0
+                                ]
+                                type "laser"
+                              }
+                              InertialUnit {
+                                name "inertial_unit"
+                              }
+                              GPS {
+                                name "body_gps"
+                              }
+                              HingeJoint {
+                                jointParameters HingeJointParameters {
+                                  position 19.153560990547312
+                                }
+                                device [
+                                  PositionSensor {
+                                    name "centrifugal_sensor"
+                                  }
+                                  RotationalMotor {
+                                    name "centrifugal_motor"
+                                    acceleration 1000
+                                    maxVelocity 60
+                                    minPosition -6.28
+                                    maxPosition 19.153560990547312
+                                    maxTorque 100
+                                  }
+                                ]
+                                endPoint Solid {
+                                  translation -0.024999999999999675 1.0408340855860843e-17 -0.020999999999999703
+                                  rotation 1 0 0 0
+                                  children [
+                                    Solid {
+                                      translation 0 0 0.08
+                                      children [
+                                        Shape {
+                                          appearance Appearance {
+                                            material Material {
+                                            }
+                                          }
+                                          geometry Sphere {
+                                            radius 0.01
+                                          }
+                                        }
+                                      ]
+                                      boundingObject Sphere {
+                                        radius 0.01
+                                      }
+                                      physics Physics {
+                                        mass 2
+                                      }
+                                    }
+                                    Shape {
+                                      appearance Appearance {
+                                        material Material {
+                                          diffuseColor 0.607843 0.607843 0.607843
+                                        }
+                                      }
+                                      geometry Cylinder {
+                                        height 0.15
+                                        radius 0.005
+                                      }
+                                    }
+                                  ]
+                                  name "solid(1)"
+                                  boundingObject Cylinder {
+                                    height 0.15
+                                    radius 0.005
+                                  }
+                                  physics Physics {
+                                    mass 0.1
+                                  }
+                                }
+                              }
                               SliderJoint {
                                 jointParameters JointParameters {
+                                  position -0.0024006708864919733
                                   minStop -0.1
                                   maxStop 0.1
                                   springConstant 50000
@@ -92,11 +231,17 @@ Solid {
                                   }
                                 ]
                                 endPoint Solid {
-                                  translation 0.00030704767281952705 1.0035567441203652e-05 0.2003026618351411
-                                  rotation -0.6511612934458448 0.7589344860847103 0.00272318733675352 2.347411812071907e-06
+                                  translation 0.000306958 3.441e-05 0.147203
+                                  rotation 1 0 0 0
                                   children [
                                     TouchSensor {
+                                      translation 0 0 0.0004
                                       name "foot_sensor"
+                                      boundingObject Sphere {
+                                        radius 0.01
+                                      }
+                                      physics Physics {
+                                      }
                                     }
                                     Pose {
                                       translation 0 0 -0.05
@@ -136,7 +281,6 @@ Solid {
                                 }
                               }
                               Pose {
-                                translation 0 0 0.05
                                 children [
                                   Shape {
                                     appearance Appearance {
@@ -152,7 +296,7 @@ Solid {
                               }
                             ]
                             boundingObject Box {
-                              size 0.02 0.02 0.2
+                              size 0.02 0.02 0.1
                             }
                             physics Physics {
                               density -1
@@ -197,10 +341,7 @@ Solid {
                     translation 0 0 -0.0125
                     children [
                       Shape {
-                        appearance Appearance {
-                          material Material {
-                            diffuseColor 0.4 0.4 0.4
-                          }
+                        appearance PBRAppearance {
                         }
                         geometry Cylinder {
                           height 0.02
@@ -227,7 +368,7 @@ Solid {
             density -1
             mass 0.001
           }
-          controller "sahr_jump_controller"
+          controller "experiment_controller"
         }
       ]
     }
@@ -241,7 +382,7 @@ Solid {
         }
       }
       geometry Cylinder {
-        height 0.2
+        height 0.3
         radius 0.01
       }
     }
