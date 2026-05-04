@@ -1,379 +1,270 @@
-"""
-SAHR Controller - Optimized for Stable Hopping
-Reduced speeds and torques within hardware limits
-"""
+"""SAHR Controller – energy-saving hopping with adaptive touchdown angle."""
 
-from controller import Robot, Motor, PositionSensor, InertialUnit, GPS, TouchSensor, DistanceSensor
+from controller import Robot
 import math
 
-# ==================== КОНСТАНТЫ (В ПРЕДЕЛАХ ОГРАНИЧЕНИЙ) ====================
-TIME_STEP = 32  # ms
-SIMULATION_TIME = 30  # seconds
+TIME_STEP = 1
+NOMINAL_LEG_LENGTH = 0.1
 
-# Параметры управления (Level 3 - целевые параметры)
-DESIRED_HEIGHT = 0.30  # желаемая высота прыжка (м)
-DESIRED_VERTICAL_VELOCITY = 2.5  # желаемая вертикальная скорость (м/с)
+( START, SPINUP, LIFTOFF, FLIGHT, PRELAND, LANDING ) = range(6)
+PHASE_NAMES = ['START','SPINUP','LIFTOFF','FLIGHT','PRELAND','LANDING']
 
-# Коэффициенты корректора (Level 3)
-K_V = 0.8  
-K_H = 1.2  
+# ---------- Целевые показатели ----------
+TARGET_HEIGHT  = 0.10          # м
+TARGET_SPEED_X = 0.5           # м/с
 
-# Параметры PID для центробежного мотора (Level 1) - уменьшены
-Kp = 12.0   
-Ki = 3.0    
-Kd = 0.8    
+# ---------- Параметры регуляторов ----------
+BASE_SPIN_SPEED  = 40.0        # базовая угловая скорость груза, рад/с
+BASE_HIP_ANGLE   = -0.2619     # -15° (угол по умолчанию)
+JUMP_HIP_ANGLE   = -0.4        # угол в фазе опоры (для следующего прыжка)
+KP_SPIN          = 2.0         # П‑регулятор скорости груза
+KP_HIP           = 15.0        # ПД‑регулятор угла бедра (усилен)
+KD_HIP           = 0.5
+GR_TORQUE_MAX    = 100.0
+HIP_TORQUE_MAX   = 30.0        # увеличен максимальный момент
+MIN_SPINUP_TIME  = 0.4         # с
+BRAKE_DURATION   = 0.03        # с
+LANDING_HOLD     = 0.3         # с
 
-# Параметры управления ногой
-HIP_ANGLE_COMPRESS = 0.15     # угол при сжатии пружины
-HIP_ANGLE_JUMP = 0.4          # угол в момент отрыва
-HIP_ANGLE_FLIGHT = 0.25       # угол в полёте
-HIP_ANGLE_LANDING = -0.1      # угол при приземлении
-HIP_ANGLE_PREPARE = 0.0       # подготовка
-
-# Параметры автомата фаз (уменьшенные скорости)
-CONTACT_THRESHOLD = 0.002     
-FOOT_FORCE_THRESHOLD = 0.03   
-MAX_COMPRESSION = 0.008       
-
-# Параметры энергетического цикла - В ПРЕДЕЛАХ ЛИМИТОВ
-SPIN_UP_DURATION = 0.5        
-SPIN_UP_SPEED = 10.0          # было 60, теперь 45 (maxVelocity=60, запас)
-JUMP_BOOST_DURATION = 0.08    
-JUMP_BOOST_POWER = 15.0       # было 50, теперь 25 (maxTorque=100)
-
-# Ограничения моторов (из world файла)
-MAX_HIP_VELOCITY = 30.0       
-MAX_CENTRIFUGAL_VELOCITY = 60.0   # жесткий лимит из world
-MAX_CENTRIFUGAL_TORQUE = 100.0    # жесткий лимит из world
-
-# Преобразователь угол -> скорость
-K_PHI = 6.0  
-
-
-class Phase:
-    START = 0
-    SPIN_UP = 1
-    JUMP = 2
-    FLIGHT = 3
-    LANDING = 4
-    RECOVERY = 5
-    
-    @staticmethod
-    def get_name(phase):
-        names = {0: "START", 1: "SPIN_UP", 2: "JUMP", 3: "FLIGHT", 4: "LANDING", 5: "RECOVERY"}
-        return names.get(phase, "UNKNOWN")
-
+# Коэффициенты верхнего уровня (подбираются)
+KP_HEIGHT_ERR    = 20.0        # добавочная скорость груза на метр ошибки по высоте
+KP_SPEED_ERR     = 0.2         # добавочный угол ноги на м/с ошибки по скорости
+# ------------------------------------------
 
 class SAHRController:
-    def __init__(self, robot):
-        self.robot = robot
-        self.time_step = TIME_STEP
-        self.current_time = 0.0
-        self.jump_count = 0
-        
-        # ========== ИНИЦИАЛИЗАЦИЯ УСТРОЙСТВ ==========
-        self.hip_motor = robot.getDevice("hip_motor")
-        self.centrifugal_motor = robot.getDevice("centrifugal_motor")
-        
-        self.hip_sensor = robot.getDevice("hip_sensor")
-        self.centrifugal_sensor = robot.getDevice("centrifugal_sensor")
-        self.leg_sensor = robot.getDevice("leg_sensor")
-        self.foot_sensor = robot.getDevice("foot_sensor")
-        self.imu = robot.getDevice("inertial_unit")
-        self.gps = robot.getDevice("body_gps")
-        self.height_sensor = robot.getDevice("height_sensor")
-        
-        # Включение датчиков
-        self.hip_sensor.enable(TIME_STEP)
-        self.centrifugal_sensor.enable(TIME_STEP)
-        self.leg_sensor.enable(TIME_STEP)
-        self.foot_sensor.enable(TIME_STEP)
-        self.imu.enable(TIME_STEP)
-        self.gps.enable(TIME_STEP)
-        self.height_sensor.enable(TIME_STEP)
-        
-        # ========== ПЕРЕМЕННЫЕ ==========
-        self.phase = Phase.START
-        self.phase_timer = 0.0
-        
-        # PID переменные
-        self.integral_error = 0.0
-        self.prev_error = 0.0
-        
-        # Оценка состояния
-        self.estimated_height = 0.0
-        self.estimated_vertical_velocity = 0.0
-        self.prev_height = 0.0
-        
-        # Управление
-        self.desired_height = DESIRED_HEIGHT
-        self.desired_velocity = DESIRED_VERTICAL_VELOCITY
-        self.omega_desired = 0.0
-        self.phi_desired = 0.0
-        
-        # Состояние
-        self.contact = False
-        self.leg_compression = 0.0
-        self.stored_energy = 0.0
-        self.prev_omega = 0.0
-        
-        self.last_log_time = 0.0
-        self.warning_shown = False
-        
-        print("=== SAHR Controller Optimized ===")
-        print(f"Max motor speed: {MAX_CENTRIFUGAL_VELOCITY} rad/s")
-        print(f"Max motor torque: {MAX_CENTRIFUGAL_TORQUE} Nm")
-        print(f"Target speed: {SPIN_UP_SPEED} rad/s")
-        
-    def clamp(self, value, min_val, max_val):
-        if value < min_val:
-            return min_val
-        if value > max_val:
-            return max_val
-        return value
-    
-    def detect_contact(self):
-        """Детекция контакта"""
-        self.leg_compression = abs(self.leg_sensor.getValue())
-        foot_force = self.foot_sensor.getValue()
-        
-        k_spring = 50000.0
-        self.stored_energy = 0.5 * k_spring * (self.leg_compression ** 2)
-        
-        contact = (self.leg_compression > CONTACT_THRESHOLD) or (foot_force > FOOT_FORCE_THRESHOLD)
-        
-        if contact and not self.contact:
-            print(f"  >>> CONTACT at t={self.current_time:.3f}s | Energy: {self.stored_energy:.2f}J")
-        elif not contact and self.contact:
-            self.jump_count += 1
-            print(f"  >>> LIFTOFF #{self.jump_count} at t={self.current_time:.3f}s | Height: {self.estimated_height:.3f}m")
-            
-        return contact
-    
-    def estimate_state(self):
-        """Оценка высоты и скорости"""
-        gps_values = self.gps.getValues()
-        self.estimated_height = gps_values[2]
-        
-        dt = TIME_STEP / 1000.0
-        if dt > 0:
-            self.estimated_vertical_velocity = (self.estimated_height - self.prev_height) / dt
-        
-        self.prev_height = self.estimated_height
-        return self.estimated_height, self.estimated_vertical_velocity
-    
-    def compute_errors(self):
-        """Вычисление ошибок"""
-        e_v = self.desired_velocity - self.estimated_vertical_velocity
-        e_h = self.desired_height - self.estimated_height
-        return e_v, e_h
-    
-    def corrector(self, e_v, e_h):
-        """Корректор"""
-        delta_omega = K_V * e_v + K_H * e_h
-        delta_omega = self.clamp(delta_omega, -15.0, 15.0)
-        return delta_omega, 0.0
-    
-    def pid_controller(self, desired_omega, actual_omega, dt):
-        """ПИД-регулятор с ограничениями"""
-        error = desired_omega - actual_omega
-        
-        P = Kp * error
-        
-        self.integral_error += error * dt
-        self.integral_error = self.clamp(self.integral_error, -8.0, 8.0)
-        I = Ki * self.integral_error
-        
-        if dt > 0:
-            derivative = (error - self.prev_error) / dt
-        else:
-            derivative = 0.0
-        D = Kd * derivative
-        
-        output = P + I + D
-        
-        # Жесткое ограничение в пределах maxTorque
-        output = self.clamp(output, -MAX_CENTRIFUGAL_TORQUE, MAX_CENTRIFUGAL_TORQUE)
-        
-        self.prev_error = error
-        return output
-    
-    def angle_to_velocity(self, desired_phi, actual_phi):
-        """Преобразователь угол -> скорость"""
-        error = desired_phi - actual_phi
-        # Нелинейное преобразование для плавности
-        if abs(error) > 0.5:
-            gain = K_PHI * 1.2
-        else:
-            gain = K_PHI
-            
-        omega = gain * error
-        return self.clamp(omega, -MAX_HIP_VELOCITY, MAX_HIP_VELOCITY)
-    
-    def phase_automaton(self):
-        """Автомат фаз"""
-        dt = TIME_STEP / 1000.0
-        self.phase_timer += dt
-        
-        contact = self.contact
-        centrifugal_speed = abs(self.centrifugal_sensor.getValue())
-        
-        if self.phase == Phase.START:
-            if centrifugal_speed > SPIN_UP_SPEED * 0.6:
-                self.change_phase(Phase.SPIN_UP)
-                
-        elif self.phase == Phase.SPIN_UP:
-            if centrifugal_speed >= SPIN_UP_SPEED and self.leg_compression > CONTACT_THRESHOLD:
-                self.change_phase(Phase.JUMP)
-                
-        elif self.phase == Phase.JUMP:
-            if not contact or self.phase_timer > JUMP_BOOST_DURATION:
-                self.change_phase(Phase.FLIGHT)
-                
-        elif self.phase == Phase.FLIGHT:
-            if contact:
-                self.change_phase(Phase.LANDING)
-                
-        elif self.phase == Phase.LANDING:
-            if self.leg_compression > MAX_COMPRESSION * 0.7 or self.phase_timer > 0.12:
-                self.change_phase(Phase.RECOVERY)
-                
-        elif self.phase == Phase.RECOVERY:
-            if self.phase_timer > SPIN_UP_DURATION * 0.4:
-                self.change_phase(Phase.SPIN_UP)
-        
-        self.phase_control()
-    
-    def change_phase(self, new_phase):
-        """Смена фазы"""
-        if self.phase != new_phase:
-            print(f"[{self.current_time:.3f}s] {Phase.get_name(self.phase)} -> {Phase.get_name(new_phase)}")
-            self.phase = new_phase
-            self.phase_timer = 0.0
-    
-    def phase_control(self):
-        """Управление в зависимости от фазы"""
-        actual_phi = self.hip_sensor.getValue()
-        actual_omega = self.centrifugal_sensor.getValue()
-        
-        if self.phase == Phase.START:
-            progress = self.clamp(self.phase_timer / 0.2, 0.0, 1.0)
-            self.omega_desired = SPIN_UP_SPEED * progress
-            self.phi_desired = HIP_ANGLE_PREPARE
-            
-        elif self.phase == Phase.SPIN_UP:
-            self.omega_desired = SPIN_UP_SPEED
-            if self.leg_compression < MAX_COMPRESSION * 0.5:
-                self.phi_desired = HIP_ANGLE_COMPRESS
-            else:
-                self.phi_desired = HIP_ANGLE_PREPARE
-                
-        elif self.phase == Phase.JUMP:
-            e_v, e_h = self.compute_errors()
-            delta_omega, _ = self.corrector(e_v, e_h)
-            
-            # Плавный буст
-            boost = JUMP_BOOST_POWER * (1.0 - self.phase_timer / JUMP_BOOST_DURATION)
-            boost = self.clamp(boost, 0.0, JUMP_BOOST_POWER)
-            
-            self.omega_desired = SPIN_UP_SPEED + delta_omega + boost
-            # Жесткое ограничение скорости
-            self.omega_desired = self.clamp(self.omega_desired, 0, MAX_CENTRIFUGAL_VELOCITY)
-            
-            progress = self.clamp(self.phase_timer / JUMP_BOOST_DURATION, 0.0, 1.0)
-            self.phi_desired = HIP_ANGLE_COMPRESS + (HIP_ANGLE_JUMP - HIP_ANGLE_COMPRESS) * progress
-            
-        elif self.phase == Phase.FLIGHT:
-            self.omega_desired = SPIN_UP_SPEED * 0.65
-            
-            landing_prepare = self.clamp(self.phase_timer / 0.25, 0.0, 1.0)
-            self.phi_desired = HIP_ANGLE_FLIGHT + (HIP_ANGLE_LANDING - HIP_ANGLE_FLIGHT) * landing_prepare
-            
-        elif self.phase == Phase.LANDING:
-            self.omega_desired = SPIN_UP_SPEED * 0.5
-            
-            if self.leg_compression < MAX_COMPRESSION * 0.3:
-                self.phi_desired = HIP_ANGLE_LANDING
-            else:
-                self.phi_desired = HIP_ANGLE_COMPRESS
-                
-        elif self.phase == Phase.RECOVERY:
-            self.omega_desired = SPIN_UP_SPEED
-            self.phi_desired = HIP_ANGLE_COMPRESS
-        
-        # Применяем управление с ограничениями
-        self.apply_control(actual_phi, actual_omega)
-    
-    def apply_control(self, actual_phi, actual_omega):
-        """Применение управляющих сигналов"""
-        dt = TIME_STEP / 1000.0
-        
-        # Управление ногой
-        hip_velocity = self.angle_to_velocity(self.phi_desired, actual_phi)
-        self.hip_motor.setVelocity(hip_velocity)
-        
-        # Управление центробежным мотором
-        torque = self.pid_controller(self.omega_desired, actual_omega, dt)
-        
-        # Дополнительная проверка на превышение лимитов
-        if abs(torque) > MAX_CENTRIFUGAL_TORQUE:
-            torque = MAX_CENTRIFUGAL_TORQUE if torque > 0 else -MAX_CENTRIFUGAL_TORQUE
-            
-        self.centrifugal_motor.setTorque(torque)
-        
-        # Ограничиваем скорость, чтобы не было варнингов
-        if self.omega_desired > MAX_CENTRIFUGAL_VELOCITY:
-            self.centrifugal_motor.setVelocity(MAX_CENTRIFUGAL_VELOCITY)
-        else:
-            self.centrifugal_motor.setVelocity(self.omega_desired + 5.0)  # небольшой запас
-    
-    def log_state(self):
-        """Логирование состояния"""
-        if self.current_time - self.last_log_time >= 0.5:
-            self.last_log_time = self.current_time
-            
-            centrifugal_speed = self.centrifugal_sensor.getValue()
-            hip_angle = self.hip_sensor.getValue()
-            leg_compression_mm = abs(self.leg_sensor.getValue()) * 1000
-            
-            # Проверка на превышение лимитов (только если превышает)
-            if centrifugal_speed > MAX_CENTRIFUGAL_VELOCITY and not self.warning_shown:
-                print(f"  WARNING: Speed {centrifugal_speed:.1f} > {MAX_CENTRIFUGAL_VELOCITY}")
-                self.warning_shown = True
-            
-            speed_indicator = ""
-            if abs(self.estimated_vertical_velocity) > 1.0:
-                speed_indicator = " ↑" if self.estimated_vertical_velocity > 0 else " ↓"
-            
-            print(f"{self.current_time:5.2f}s | {Phase.get_name(self.phase):8s} | "
-                  f"H:{self.estimated_height:5.3f}m V:{self.estimated_vertical_velocity:5.2f}m/s{speed_indicator} | "
-                  f"ω:{centrifugal_speed:5.1f}/{self.omega_desired:5.1f} | "
-                  f"Spring:{leg_compression_mm:4.1f}mm")
-    
-    def run(self):
-        """Основной цикл"""
-        print("Starting control loop...")
-        print("=" * 70)
-        
-        self.hip_motor.setPosition(float('inf'))
-        self.centrifugal_motor.setPosition(float('inf'))
-        
-        while self.robot.step(TIME_STEP) != -1:
-            self.current_time += TIME_STEP / 1000.0
-            
-            if self.current_time >= SIMULATION_TIME:
-                print(f"\n=== Finished: {self.jump_count} jumps in {SIMULATION_TIME}s ===")
-                break
-            
-            self.contact = self.detect_contact()
-            self.estimate_state()
-            self.phase_automaton()
-            self.log_state()
-        
-        print("Controller stopped")
+    def __init__(self):
+        self.robot = Robot()
 
+        # Датчики
+        self.leg_sensor = self.robot.getDevice("leg_sensor")
+        self.leg_sensor.enable(TIME_STEP)
+        self.foot_sensor = self.robot.getDevice("foot_sensor")
+        self.foot_sensor.enable(TIME_STEP)
+        self.body_gps = self.robot.getDevice("body_gps")
+        self.body_gps.enable(TIME_STEP)
+        self.hip_sensor = self.robot.getDevice("hip_sensor")
+        self.hip_sensor.enable(TIME_STEP)
+        self.centrifugal_sensor = self.robot.getDevice("centrifugal_sensor")
+        self.centrifugal_sensor.enable(TIME_STEP)
+
+        # Моторы
+        self.hip_motor = self.robot.getDevice("hip_motor")
+        self.hip_motor.setTorque(0.0)
+        self.centrifugal_motor = self.robot.getDevice("centrifugal_motor")
+        self.centrifugal_motor.setTorque(0.0)
+
+        # Переменные состояния
+        self.phase = START
+        self.prev_contact = False
+        self.prev_cent_angle = 0.0
+        self.omega = 0.0
+        self.ground_z = 0.149        # фиксированная высота земли (по логам)
+        self.apex_height = 0.0
+        self.apex_reached = False
+        self.apex_time = 0.0
+        self.prev_x = 0.0
+        self.vx = 0.0
+        self.vy = 0.0
+        self.phase_start_time = 0.0
+        self.prev_hip_error = 0.0
+        self.brake_start_time = None
+
+        # Переменные верхнего уровня и адаптивного угла
+        self.desired_spin_speed = BASE_SPIN_SPEED
+        self.desired_hip_angle  = BASE_HIP_ANGLE
+        self.touchdown_angle   = BASE_HIP_ANGLE   # угол для приземления (по вектору скорости)
+        self.jump_angle        = JUMP_HIP_ANGLE   # угол для фазы опоры
+
+        print("SAHR Controller (adaptive) ready.")
+
+    # ========== Сенсоры ==========
+    def read_sensors(self):
+        leg_off = self.leg_sensor.getValue() if self.leg_sensor else 0.0
+        leg_len = NOMINAL_LEG_LENGTH + leg_off
+        gps = self.body_gps.getValues() if self.body_gps else [0,0,0]
+        contact = self.foot_sensor.getValue() > 0.5 if self.foot_sensor else False
+        cent_angle = self.centrifugal_sensor.getValue() if self.centrifugal_sensor else 0.0
+        hip_angle = self.hip_sensor.getValue() if self.hip_sensor else 0.0
+        return {'z': gps[2], 'contact': contact, 'leg_len': leg_len,
+                'cent_angle': cent_angle, 'hip_angle': hip_angle, 'x': gps[0]}
+
+    # ========== Вычисления ==========
+    def compute_omega(self, s):
+        dt = TIME_STEP / 1000.0
+        d = s['cent_angle'] - self.prev_cent_angle
+        if d > math.pi:       
+            d -= 2*math.pi
+        elif d < -math.pi:    
+            d += 2*math.pi
+        self.omega = d / dt
+        self.prev_cent_angle = s['cent_angle']
+
+    def compute_velocity(self, s):
+        dt = TIME_STEP / 1000.0
+        self.vx = (s['x'] - self.prev_x) / dt
+        self.prev_x = s['x']
+
+    def compute_touchdown_angle(self):
+        """Угол приземления по направлению вектора скорости."""
+        # Если скорости практически нулевые, используем угол по умолчанию
+        if abs(self.vx) < 0.01 and abs(self.vy) < 0.01:
+            return BASE_HIP_ANGLE
+        # vy должна быть отрицательной (падение), но для надёжности используем abs(vy) в знаменателе
+        angle = -math.atan2(self.vx, -self.vy) if self.vy < 0 else 0.0
+        # Ограничиваем диапазон: [-0.6, 0.6] рад (~[-34°, 34°])
+        return max(-0.6, min(0.6, angle))
+
+    # ========== Верхний уровень ==========
+    def high_level_control(self, s):
+        """Вычисляет поправки к уставкам на основе ошибок."""
+        height_err = TARGET_HEIGHT - self.apex_height
+        self.desired_spin_speed = BASE_SPIN_SPEED + KP_HEIGHT_ERR * height_err
+        self.desired_spin_speed = max(10.0, min(100.0, self.desired_spin_speed))
+
+        speed_err = TARGET_SPEED_X - self.vx
+        # Поправка для будущего угла приземления через изменение базового угла,
+        # но не меняем touchdown_angle здесь – он вычисляется по скорости.
+        self.desired_hip_angle = BASE_HIP_ANGLE - KP_SPEED_ERR * speed_err
+        self.desired_hip_angle = max(-0.6, min(0.6, self.desired_hip_angle))
+
+    # ========== Автомат фаз ==========
+    def update_phase(self, s):
+        contact = s['contact']
+        liftoff = not contact and self.prev_contact
+        touchdown = contact and not self.prev_contact
+        self.prev_contact = contact
+        t = self.robot.getTime()
+
+        if self.phase == START:
+            if contact:
+                # Уровень земли уже задан жёстко
+                self._set_phase(SPINUP)
+
+        elif self.phase == SPINUP:
+            # В фазе раскрутки держим прыжковый угол (носок вперёд)
+            self.desired_hip_angle = self.jump_angle
+            if (t - self.phase_start_time > MIN_SPINUP_TIME and
+                self.omega >= self.desired_spin_speed * 0.95):
+                self._set_phase(LIFTOFF)
+                self.brake_start_time = t
+
+        elif self.phase == LIFTOFF:
+            if liftoff:
+                self._set_phase(FLIGHT)
+                self.apex_height = s['z'] - self.ground_z
+                self.apex_reached = False
+                self.apex_time = t
+            elif t - self.phase_start_time > 0.2:
+                # Если не взлетели – возвращаемся на раскрутку
+                self._set_phase(SPINUP)
+
+        elif self.phase == FLIGHT:
+            h = s['z'] - self.ground_z
+            if h > self.apex_height:
+                self.apex_height = h
+                self.apex_time = t
+            else:
+                self.apex_reached = True
+
+            # Вычисляем вертикальную скорость после апогея
+            if self.apex_reached:
+                dt_apex = t - self.apex_time
+                self.vy = -9.81 * dt_apex   # свободное падение
+                # Когда скорость известна, вычисляем идеальный угол приземления
+                self.touchdown_angle = self.compute_touchdown_angle()
+            else:
+                self.vy = 0.0
+                # До апогея держим предыдущий угол (или базовый)
+                self.touchdown_angle = BASE_HIP_ANGLE
+
+            # Желаемый угол в полёте – угол приземления
+            self.desired_hip_angle = self.touchdown_angle
+
+            # Вызываем верхний уровень для коррекции уставок (на следующий цикл)
+            self.high_level_control(s)
+
+            if self.apex_reached and h < 0.03:
+                self._set_phase(PRELAND)
+
+        elif self.phase == PRELAND:
+            # Продолжаем держать вычисленный угол приземления
+            self.desired_hip_angle = self.touchdown_angle
+            if touchdown:
+                self._set_phase(LANDING)
+                self.brake_start_time = None
+
+        elif self.phase == LANDING:
+            # Сразу после касания продолжаем держать touchdown_angle,
+            # через 0.1 с переключаемся на прыжковый угол для следующего цикла
+            if t - self.phase_start_time < 0.1:
+                self.desired_hip_angle = self.touchdown_angle
+            else:
+                self.desired_hip_angle = self.jump_angle
+
+            if (t - self.phase_start_time > LANDING_HOLD and abs(self.omega) < 5.0):
+                self._set_phase(SPINUP)
+
+    # ========== Регуляторы ==========
+    def control_centrifugal(self):
+        if self.phase == SPINUP:
+            err = self.desired_spin_speed - self.omega
+            tau = KP_SPIN * err
+            tau = max(-GR_TORQUE_MAX, min(GR_TORQUE_MAX, tau))
+            self.centrifugal_motor.setTorque(tau)
+        elif self.phase == LIFTOFF:
+            if self.brake_start_time is not None:
+                if self.robot.getTime() - self.brake_start_time < BRAKE_DURATION:
+                    self.centrifugal_motor.setTorque(-GR_TORQUE_MAX)
+                else:
+                    self.centrifugal_motor.setTorque(0.0)
+            else:
+                self.centrifugal_motor.setTorque(0.0)
+        elif self.phase == LANDING:
+            if abs(self.omega) > 0.5:
+                tau = -KP_SPIN * self.omega
+                tau = max(-GR_TORQUE_MAX, min(GR_TORQUE_MAX, tau))
+                self.centrifugal_motor.setTorque(tau)
+            else:
+                self.centrifugal_motor.setTorque(0.0)
+        else:
+            self.centrifugal_motor.setTorque(0.0)
+
+    def control_hip(self):
+        if self.phase == START:
+            self.hip_motor.setTorque(0.0)
+            return
+
+        current = self.hip_sensor.getValue() if self.hip_sensor else 0.0
+        err = self.desired_hip_angle - current
+        der = err - self.prev_hip_error
+        tau = KP_HIP * err + KD_HIP * der
+        tau = max(-HIP_TORQUE_MAX, min(HIP_TORQUE_MAX, tau))
+        self.hip_motor.setTorque(tau)
+        self.prev_hip_error = err
+
+    # ========== Служебные ==========
+    def _set_phase(self, new_phase):
+        self.phase = new_phase
+        self.phase_start_time = self.robot.getTime()
+        print(f"t={self.phase_start_time:.2f}s | -> {PHASE_NAMES[new_phase]}")
+
+    def log_state(self, s):
+        t = self.robot.getTime()
+        if int(t * 1000) % 200 == 0:
+            h = s['z'] - self.ground_z
+            print(f"t={t:.2f}s | {PHASE_NAMES[self.phase]} | "
+                  f"h={h:.3f}m | ω={self.omega:.1f} | φ_ref={self.desired_hip_angle:.3f} | "
+                  f"φ={s['hip_angle']:.2f} | vx={self.vx:.2f}")
+
+    def run(self):
+        while self.robot.step(TIME_STEP) != -1:
+            s = self.read_sensors()
+            self.compute_omega(s)
+            self.compute_velocity(s)
+            self.update_phase(s)
+            self.control_centrifugal()
+            self.control_hip()
+            self.log_state(s)
 
 if __name__ == "__main__":
-    robot = Robot()
-    controller = SAHRController(robot)
-    controller.run()
+    SAHRController().run()

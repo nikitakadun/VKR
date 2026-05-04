@@ -23,8 +23,8 @@ WorldInfo {
   ]
 }
 Viewpoint {
-  orientation -0.30406819395187107 0.014298882196902377 0.9525429519946942 3.0333656901530412
-  position 1.2336667574694233 -0.0407349625780139 0.693191288101576
+  orientation -0.16383297163068428 0.053151131703809515 0.985055183533016 2.48806832666231
+  position 0.9419421409006026 -0.3649770888220834 0.36095099876242254
 }
 TexturedBackground {
 }
@@ -53,7 +53,7 @@ Solid {
                 }
               ]
               endPoint DEF x Solid {
-                translation 0.03410969823619046 1.096934897360305e-05 -0.0038018000000003722
+                translation 0.03410969823619164 1.0969348973606519e-05 -0.0038018000000005076
                 rotation -0.00016107592521574917 0.9999999740558929 0.00016106756281038362 1.570848270008141
                 children [
                   Solid {
@@ -83,8 +83,8 @@ Solid {
                       maxStop 3.14
                     }
                     endPoint Solid {
-                      translation -0.08736281129716048 7.61007e-08 0.17499187852759568
-                      rotation 0 -1 0 0.4523327560995197
+                      translation 0.004795900000000061 -0.00259366 0.19499200000000022
+                      rotation 0 1 0 0
                       children [
                         Solid {
                           translation 0 0 0.2
@@ -111,16 +111,16 @@ Solid {
                           device [
                             RotationalMotor {
                               name "hip_motor"
-                              acceleration 0
-                              maxVelocity 0
-                              maxTorque 0
+                              minPosition -3.14
+                              maxPosition 3.14
+                              maxTorque 30
                             }
                             PositionSensor {
                               name "hip_sensor"
                             }
                           ]
                           endPoint Solid {
-                            translation 0.009972720527383986 -1.3911671812870521e-05 0.2199976295492901
+                            translation 0.0299715 -0.000230235 0.220012
                             rotation 0.011524482315039738 0.9999333396793559 0.0007088759129188692 1.5700604538172254
                             children [
                               Solid {
@@ -166,16 +166,15 @@ Solid {
                                   }
                                   RotationalMotor {
                                     name "centrifugal_motor"
-                                    acceleration 0
-                                    maxVelocity 0
+                                    maxVelocity 100
                                     minPosition -6.28
-                                    maxPosition 19.313912945435295
+                                    maxPosition 19.3139
                                     maxTorque 100
                                   }
                                 ]
                                 endPoint Solid {
-                                  translation -0.025000087395180448 0.000904762142140867 -0.010467849891921793
-                                  rotation 0.9999999999966965 2.5681443212357214e-06 -1.0665638001303354e-07 0.010000029603955447
+                                  translation -0.0250001 0.000704763 0.0095311
+                                  rotation 0.9999999999966966 2.568149999991517e-06 -1.066569999996477e-07 0.009995307179593384
                                   children [
                                     Solid {
                                       translation 0 0 0.08
@@ -194,6 +193,7 @@ Solid {
                                         radius 0.01
                                       }
                                       physics Physics {
+                                        mass 2
                                       }
                                     }
                                     Shape {
@@ -298,7 +298,7 @@ Solid {
                             }
                             physics Physics {
                               density -1
-                              mass 12
+                              mass 10
                               centerOfMass [
                                 0 0 0
                               ]
@@ -366,7 +366,7 @@ Solid {
             density -1
             mass 0.001
           }
-          controller "experiment_controller"
+          controller "sahr_jump_controller"
         }
       ]
     }

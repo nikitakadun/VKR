@@ -4,6 +4,8 @@ simulationViewPerspectives: 000000ff0000000100000002000002a700000229010000000201
 sceneTreePerspectives: 000000ff00000001000000030000001e000000c0000000fb0100000002010000000201
 maximizedDockId: -1
 centralWidgetVisible: 1
+projectionMode: PERSPECTIVE
+renderingMode: PLAIN
 orthographicViewHeight: 1
 textFiles: 0 "controllers/sahr_jump_controller/sahr_jump_controller.py" "controllers/experiment_controller/experiment_controller.py" "worlds/simple-jump-VKR_Experiment.wbt"
 consoles: Console:All:All
