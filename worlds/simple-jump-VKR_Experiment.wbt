@@ -53,7 +53,7 @@ Solid {
                 }
               ]
               endPoint DEF x Solid {
-                translation 0.03410969823619164 1.0969348973606519e-05 -0.0038018000000005076
+                translation 0.03410969823619173 1.0969348973604784e-05 -0.0038018000000005162
                 rotation -0.00016107592521574917 0.9999999740558929 0.00016106756281038362 1.570848270008141
                 children [
                   Solid {
@@ -113,7 +113,7 @@ Solid {
                               name "hip_motor"
                               minPosition -3.14
                               maxPosition 3.14
-                              maxTorque 30
+                              maxTorque 100
                             }
                             PositionSensor {
                               name "hip_sensor"
